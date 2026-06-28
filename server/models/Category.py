@@ -93,9 +93,9 @@ class Category:
             raise Exception(f"Error fetching category names by user ID: {str(e)}")
     
     @staticmethod
-    def get_by_slug(category_slug):
+    def get_by_slug(category_slug:str, user_id:str):
         try:
-            category = CategoriesCollection.find_one({"category_slug": category_slug})
+            category = CategoriesCollection.find_one({"category_slug": category_slug, "user_id":user_id})
             if category:
                 return Category(**category)
             return None

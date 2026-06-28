@@ -34,7 +34,7 @@ def create_url():
     if not data.get("category_id") and data.get("new_category"):
         # check if the new_category already exists
         new_category_slug = convert_to_slug(data.get("new_category"))
-        existing_category = Category.get_by_slug(new_category_slug)
+        existing_category = Category.get_by_slug(new_category_slug, user_id)
         if existing_category:
             # Use existing category ID
             data['category_id'] = str(existing_category._id)
@@ -238,7 +238,7 @@ def update_url(url_id):
             new_category = data.get("new_category")
             if new_category:
                 new_category_slug = convert_to_slug(new_category)
-                existing_category = Category.get_by_slug(new_category_slug)
+                existing_category = Category.get_by_slug(new_category_slug, user_id)
                 if existing_category:
                     # Use existing category ID
                     data['category_id'] = str(existing_category._id)
