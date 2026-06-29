@@ -256,7 +256,6 @@ def update_password():
 @auth_router.route("/ping", methods=["GET"])
 def ping():
     token = request.cookies.get("token")
-    token = request.cookies.get('token')
     is_valid_token, payload = validate_and_get_token_payload(token) if token else False
     if is_valid_token:
         user_id = payload.get('user_id')
