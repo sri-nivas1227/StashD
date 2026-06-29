@@ -1,4 +1,4 @@
-from flask import request, Blueprint, make_response
+from flask import request, Blueprint, make_response, current_app
 from bcrypt import hashpw, gensalt, checkpw
 import jwt
 from dotenv import load_dotenv
@@ -38,7 +38,7 @@ def signup():
         email_verification_data = send_onboarding_otp(email,)
         otp_data = OTP.build_otp_object(otp=email_verification_data.get("otp"), user_id=user_id)
         otp_inserted_id = otp_data.create()
-        jwt_secret = os.getenv("JWT_SECRET")
+        jwt_secret = current_app.config.get("JWT_SECRET")
         jwt_token = jwt.encode(
             {
                 "user_id": str(user._id),
@@ -82,7 +82,7 @@ def resend_otp():
         email_verification_data = send_onboarding_otp(user.email)
         otp_data = OTP.build_otp_object(otp=email_verification_data.get("otp"), user_id=user_id)
         otp_inserted_id = otp_data.create()
-        jwt_secret = os.getenv("JWT_SECRET")
+        jwt_secret = current_app.config.get("JWT_SECRET")
         jwt_token = jwt.encode(
             {
                 "user_id": str(user._id),
@@ -118,7 +118,7 @@ def verify_OTP():
     verify_email_confirmation = User.verify_user_email(user_id)
     if verify_email_confirmation:
         user = User.get_by_id(user_id)
-        jwt_secret = os.getenv("JWT_SECRET")
+        jwt_secret = current_app.config.get("JWT_SECRET")
         jwt_token = jwt.encode(
             {
                 "user_id": str(user._id),
@@ -168,7 +168,7 @@ def login():
         email_data = send_onboarding_otp(email) if not is_otp_login else send_login_otp(email)
         otp_data = OTP.build_otp_object(otp=email_data.get("otp"), user_id=str(user._id))
         otp_inserted_id = otp_data.create()
-        jwt_secret = os.getenv("JWT_SECRET")
+        jwt_secret = current_app.config.get("JWT_SECRET")
         jwt_token = jwt.encode(
             {
                 "user_id": str(user._id),
@@ -192,7 +192,7 @@ def login():
     if checkpw(
         password.encode("utf-8"), user.password.encode("utf-8")
     ):
-        jwt_secret = os.getenv("JWT_SECRET")
+        jwt_secret = current_app.config.get("JWT_SECRET")
         jwt_token = jwt.encode(
             {
                 "user_id": str(user._id),

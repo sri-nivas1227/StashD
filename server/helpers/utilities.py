@@ -1,11 +1,10 @@
 import re
 import jwt
-from dotenv import load_dotenv
-import os
+from flask import current_app
 from db import db
 userCollection = db.get_collection('users')
 from bson import ObjectId
-load_dotenv()
+
 def convert_to_slug(text: str) -> str:
     text = text.strip().lower()
     text = re.sub(r'\s+', '-', text)
@@ -13,7 +12,7 @@ def convert_to_slug(text: str) -> str:
     return text
 
 def validate_and_get_token_payload(token: str) -> bool:
-    jwt_secret = os.getenv("JWT_SECRET")
+    jwt_secret = current_app.config.get("JWT_SECRET")
     try:
         payload = jwt.decode(token, jwt_secret, algorithms=["HS256"])  
         user = userCollection.find_one({"_id": ObjectId(payload["user_id"])})

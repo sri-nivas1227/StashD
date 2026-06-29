@@ -1,11 +1,8 @@
-from flask import Blueprint, jsonify, request, make_response
-from bson import ObjectId
+from flask import Blueprint, jsonify, request, make_response, current_app
 from models.BugReport import BugReport
 from helpers.resend_emailer import send_email
-import os
-from dotenv import load_dotenv
 from base64 import b64encode
-load_dotenv()
+
 admin_router = Blueprint("admin", __name__)
 
 @admin_router.route("/admin/report_issue",methods=["POST"])
@@ -25,9 +22,10 @@ def report_issue():
             "content": encoded,
             "content_type": file.content_type,
         })   
-    RESEND_EMAIL_DOMAIN = os.getenv("RESEND_EMAIL_DOMAIN")
+    RESEND_EMAIL_DOMAIN = current_app.config.get("RESEND_EMAIL_DOMAIN")
     if not email or not issue_title:
-        return make_response({"success":False,"message":"Some fields are empty. Fill them all"},400)
+        return make_response({"success":False,"message":"Please fill all the required fields in the form."},400)
+    
     bug_report_object = BugReport(title=issue_title, email=email, description=description, reproduction_steps=steps, severity=severity)
     inserted_id = bug_report_object.save()
     if inserted_id:
@@ -40,7 +38,7 @@ def report_issue():
                     <b> Steps to Reproduce </b>
                     <p>{steps}</p>
                 """
-        email_object = send_email(fromEmail=f"bugreport@{RESEND_EMAIL_DOMAIN}", toEmails=[email,f"{os.getenv("ADMIN_EMAIL")}"],subject=subject, bodyType="html", body=body, attachments=attachments)
+        email_object = send_email(fromEmail=f"bugreport@{RESEND_EMAIL_DOMAIN}", toEmails=[email,f"{current_app.config.get("ADMIN_EMAIL")}"], subject=subject, bodyType="html", body=body, attachments=attachments)
         if email_object:
             bug_object = BugReport.find_by_id(inserted_id)
             bug_object.update({"is_email_sent":True})

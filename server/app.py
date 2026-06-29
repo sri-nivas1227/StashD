@@ -15,6 +15,7 @@ load_dotenv()
 
 # Initialize Flask app
 app = Flask(__name__)
+app.config.from_object('config.Config')
 CORS(app, origins=os.getenv("ALLOWED_HOSTS"))
 app.register_blueprint(auth_router)
 app.register_blueprint(urlRouter)

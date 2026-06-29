@@ -1,15 +1,13 @@
 
-import os 
+from flask import current_app
 import resend
-from dotenv import load_dotenv
 from helpers.utilities import generate_numeric_otp
 from helpers.Email_Templates import get_login_email_template, get_registration_email_template
 
 
-load_dotenv()
-RESEND_EMAIL_DOMAIN = os.getenv("RESEND_EMAIL_DOMAIN")
+RESEND_EMAIL_DOMAIN = current_app.config.get("RESEND_EMAIL_DOMAIN")
 def send_email(fromEmail:str, toEmails:list[str], subject:str,bodyType:str, body:str, attachments=None):
-    resend.api_key = os.getenv("RESEND_API_KEY")
+    resend.api_key = current_app.config.get("RESEND_API_KEY")
     params: resend.Emails.SendParams = {
         "from": fromEmail,
         "to": toEmails,
