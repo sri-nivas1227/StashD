@@ -73,7 +73,15 @@ class Category:
             return categories
         except PyMongoError as e:
             raise Exception(f"Error fetching categories: {str(e)}")
-    
+    @staticmethod
+    def get_all_public_by_user_id(user_id):
+        try:
+            categories = CategoriesCollection.find({"user_id":user_id, "is_public":True})
+            categories = [Category(**cat) for cat in categories]
+            return categories
+        except PyMongoError as e:
+            raise Exception(f"Error fetching categories: {str(e)}")
+        
     @staticmethod
     def get_by_id(category_id, user_id):
         try:

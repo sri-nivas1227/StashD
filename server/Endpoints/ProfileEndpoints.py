@@ -72,10 +72,10 @@ def get_public_profile(username: str):
     if not user:
         return make_response({"success": False, "message": "User not found"}, 404)
 
-    all_categories = Category.get_all_by_user_id(str(user._id))
+    all_public_categories = Category.get_all_public_by_user_id(str(user._id))
     public_collections = [
         {"name": cat.name, "slug": cat.category_slug}
-        for cat in all_categories if cat.is_public
+        for cat in all_public_categories
     ]
 
     profile_data = user.profile if user.profile else {}

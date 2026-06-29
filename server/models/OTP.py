@@ -72,7 +72,7 @@ class OTP:
     
     @staticmethod
     def get_otp_by_id(_id):
-        otp = otp_collection.find(filter={"_id":ObjectId(_id)})
+        otp = otp_collection.find_one(filter={"_id":ObjectId(_id)})
         if otp:
             return OTP(**otp)
         return None
