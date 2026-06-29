@@ -5,7 +5,6 @@ from helpers.utilities import generate_numeric_otp
 from helpers.Email_Templates import get_login_email_template, get_registration_email_template
 
 
-RESEND_EMAIL_DOMAIN = current_app.config.get("RESEND_EMAIL_DOMAIN")
 def send_email(fromEmail:str, toEmails:list[str], subject:str,bodyType:str, body:str, attachments=None):
     resend.api_key = current_app.config.get("RESEND_API_KEY")
     params: resend.Emails.SendParams = {
@@ -30,7 +29,7 @@ def send_onboarding_otp(toEmail:str):
     random_OTP = generate_numeric_otp()
 
     # Email Params
-    fromEmail = f"StashD <onboarding@{RESEND_EMAIL_DOMAIN}>"
+    fromEmail = f"StashD <onboarding@{current_app.config.get('RESEND_EMAIL_DOMAIN')}>"
     toEmails = [toEmail]
     subject = f"{random_OTP} is your StashD verification code"
     bodyType = "html"
@@ -45,7 +44,7 @@ def send_login_otp(toEmail: str):
     random_OTP = generate_numeric_otp()
 
     # Email Params
-    fromEmail = f"StashD <verify@{RESEND_EMAIL_DOMAIN}>"
+    fromEmail = f"StashD <verify@{current_app.config.get('RESEND_EMAIL_DOMAIN')}>"
     toEmails = [toEmail]
     subject = f"{random_OTP} is your StashD login code"
     bodyType = "html"
