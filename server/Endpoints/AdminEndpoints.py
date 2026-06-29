@@ -15,7 +15,14 @@ def report_issue():
     severity = request.form.get("severity")
     attachments = []
     if "screenshot" in request.files:
-        file = request.files["screenshot"]
+        file = request.files.get("screenshot")
+        max_size = current_app.config["FILE_UPLOAD_MAX_SIZE"]
+        allowed_types = current_app.config["FILE_UPLOAD_ALLOWED_TYPES"]
+        file.seek(0,2)
+        size = file.tell()
+        file.seek(0)
+        if size > max_size or file.mimetype not in allowed_types:
+            make_response({"success":False, "message": "Files of type PNG, JPG/JPEG or PDF of size upto 5MB are allowed"}, 400)
         encoded = b64encode(file.read()).decode("utf-8")
         attachments.append({
             "filename": file.filename,
