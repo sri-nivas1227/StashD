@@ -32,12 +32,32 @@ const EditProfileForm = ({
       links: [],
     },
   );
+  const [nameError, setNameError] = useState("");
+  const [emailError, setEmailError] = useState("");
+
+  const fullNameRegex = /^[a-zA-Z][a-zA-Z\s'-]{1,49}$/;
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
   const handleProfileChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
     setUpdatedProfile((prev) => ({ ...prev, [name]: value }));
+
+    if (name === "name") {
+      setNameError(
+        value.trim() === "" || fullNameRegex.test(value.trim())
+          ? ""
+          : "Name must be 2-50 characters and contain only letters, spaces, hyphens, or apostrophes.",
+      );
+    }
+    if (name === "email") {
+      setEmailError(
+        value.trim() === "" || emailRegex.test(value.trim())
+          ? ""
+          : "Please enter a valid email address.",
+      );
+    }
   };
 
   const handleLinkChange = (
@@ -64,6 +84,16 @@ const EditProfileForm = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!fullNameRegex.test(updatedProfile.name.trim())) {
+      setNameError(
+        "Name must be 2-50 characters and contain only letters, spaces, hyphens, or apostrophes.",
+      );
+      return;
+    }
+    if (!emailRegex.test(updatedProfile.email.trim())) {
+      setEmailError("Please enter a valid email address.");
+      return;
+    }
     const response = await postUpdateProfileAction(updatedProfile);
     if (response.success) {
       // Handle success (e.g., show a success message, redirect, etc.)
@@ -71,7 +101,7 @@ const EditProfileForm = ({
       setIsEditing(false);
     } else {
       // Handle error (e.g., show an error message)
-      console.error("Failed to update profile");
+      toast.error(response.message || "Failed to update profile");
     }
   };
 
@@ -97,6 +127,9 @@ const EditProfileForm = ({
             onChange={handleProfileChange}
             className="mt-1 block w-full rounded-md border outline-none p-2 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
           />
+          {nameError && (
+            <span className="text-red-400 text-sm">{nameError}</span>
+          )}
         </div>
         <div>
           <label
@@ -113,6 +146,9 @@ const EditProfileForm = ({
             onChange={handleProfileChange}
             className="mt-1 block w-full rounded-md border outline-none p-2 border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
           />
+          {emailError && (
+            <span className="text-red-400 text-sm">{emailError}</span>
+          )}
         </div>
         <div>
           <label
@@ -181,7 +217,8 @@ const EditProfileForm = ({
         </button>
         <button
           type="submit"
-          className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+          disabled={!!nameError || !!emailError}
+          className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed"
         >
           Save Changes
         </button>

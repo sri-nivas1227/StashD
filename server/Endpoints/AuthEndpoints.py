@@ -5,6 +5,12 @@ from dotenv import load_dotenv
 import os
 from datetime import datetime
 from helpers.utilities import validate_and_get_token_payload
+from helpers.validators import (
+    validate_email,
+    validate_password,
+    validate_full_name,
+    validate_username,
+)
 from models.User import User
 from models.OTP import OTP
 from helpers.resend_emailer import send_onboarding_otp, send_login_otp
@@ -20,13 +26,26 @@ def signup():
     email = data.get("email")
     password = data.get("password")
     # Check if user already exists
-    existing_user = User.get_by_email(email)
-    if existing_user:
-        return make_response({"success": False, "message": "An account with this email already exists"}, 400)
     if not full_name or not email or not password:
         return make_response(
             {"success": False, "message": "All fields are required"}, 400
         )
+
+    is_valid, error = validate_full_name(full_name)
+    if not is_valid:
+        return make_response({"success": False, "message": error}, 400)
+
+    is_valid, error = validate_email(email)
+    if not is_valid:
+        return make_response({"success": False, "message": error}, 400)
+
+    is_valid, error = validate_password(password)
+    if not is_valid:
+        return make_response({"success": False, "message": error}, 400)
+
+    existing_user = User.get_by_email(email)
+    if existing_user:
+        return make_response({"success": False, "message": "An account with this email already exists"}, 400)
     user = User(
         email=email,
         full_name=full_name,
@@ -58,6 +77,9 @@ def signup():
 def verify_username():
     data = request.get_json()
     username = data.get("username")
+    is_valid, error = validate_username(username)
+    if not is_valid:
+        return make_response({"success": False, "message": error}, 400)
     username_exists = User.is_username_exists(username)
     print(username_exists)
     if username_exists:
@@ -236,6 +258,18 @@ def update_password():
     data = request.get_json()
     currentPassword = data.get("currentPassword")
     newPassword = data.get("newPassword")
+    newPasswordConfirm = data.get("newPasswordConfirm")
+
+    if not currentPassword or not newPassword or not newPasswordConfirm:
+        return make_response({"success": False, "message": "All fields are required"}, 400)
+
+    if newPassword != newPasswordConfirm:
+        return make_response({"success": False, "message": "New password and confirmation do not match"}, 400)
+
+    is_valid, error = validate_password(newPassword)
+    if not is_valid:
+        return make_response({"success": False, "message": error}, 400)
+
     if checkpw(
         currentPassword.encode("utf-8"), user.password.encode("utf-8")
     ):

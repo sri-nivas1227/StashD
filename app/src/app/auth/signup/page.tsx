@@ -24,9 +24,35 @@ export default function SignUpPage() {
     message: "",
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [nameError, setNameError] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setForm({ ...form, [name]: value });
+
+    if (name === "name") {
+      setNameError(
+        value.trim() === "" || isFullNameValid(value)
+          ? ""
+          : "Name must be 2-50 characters and contain only letters, spaces, hyphens, or apostrophes.",
+      );
+    }
+    if (name === "email") {
+      setEmailError(
+        value.trim() === "" || isEmailValid(value)
+          ? ""
+          : "Please enter a valid email address.",
+      );
+    }
+    if (name === "password") {
+      setPasswordError(
+        value === "" || isPasswordStrong(value)
+          ? ""
+          : "Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.",
+      );
+    }
   };
 
   const handleSignUp = async () => {
@@ -39,6 +65,18 @@ export default function SignUpPage() {
       form.password === ""
     ) {
       setError("Please fill all fields!");
+      setLoading(false);
+      return;
+    }
+    if (!isFullNameValid(form.name)) {
+      setError(
+        "Name must be 2-50 characters and contain only letters, spaces, hyphens, or apostrophes.",
+      );
+      setLoading(false);
+      return;
+    }
+    if (!isEmailValid(form.email)) {
+      setError("Please enter a valid email address.");
       setLoading(false);
       return;
     }
@@ -76,6 +114,18 @@ export default function SignUpPage() {
     return strongPasswordRegex.test(password);
   };
 
+  // validate full name format
+  const isFullNameValid = (name: string) => {
+    const fullNameRegex = /^[a-zA-Z][a-zA-Z\s'-]{1,49}$/;
+    return fullNameRegex.test(name.trim());
+  };
+
+  // validate email format
+  const isEmailValid = (email: string) => {
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return emailRegex.test(email.trim());
+  };
+
   // handle enter key press for form submission
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
@@ -92,13 +142,12 @@ export default function SignUpPage() {
         }));
         return;
       }
-      console.log(/^[a-zA-Z0-9_]+$/.test(form.username.trim()));
-      if (!/^[a-zA-Z0-9_]+$/.test(form.username.trim())) {
+      if (!/^[a-zA-Z][a-zA-Z0-9_]*$/.test(form.username.trim())) {
         setUsernameMessage((prev) => ({
           ...prev,
           success: false,
           message:
-            "Username can only contain letters, numbers, and underscores.",
+            "Username must start with a letter and can only contain letters, numbers, and underscores.",
         }));
       } else if (form.username.length < 3 || form.username.length > 20) {
         setUsernameMessage((prev) => ({
@@ -152,6 +201,9 @@ export default function SignUpPage() {
               required
               className="mt-2 w-full rounded-xl bg-zinc-900/60 border border-white/10 px-4 py-3 text-sm text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/60"
             />
+            {nameError && (
+              <span className="text-red-400 text-sm">{nameError}</span>
+            )}
           </div>
           <div>
             <label className="text-sm text-zinc-300">Username</label>
@@ -186,6 +238,9 @@ export default function SignUpPage() {
               required
               className="mt-2 w-full rounded-xl bg-zinc-900/60 border border-white/10 px-4 py-3 text-sm text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/60"
             />
+            {emailError && (
+              <span className="text-red-400 text-sm">{emailError}</span>
+            )}
           </div>
           <div>
             <label className="text-sm text-zinc-300">Password</label>
@@ -206,6 +261,9 @@ export default function SignUpPage() {
             >
               Show Password
             </p>
+            {passwordError && (
+              <span className="text-red-400 text-sm">{passwordError}</span>
+            )}
           </div>
           {error && (
             <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
@@ -214,7 +272,16 @@ export default function SignUpPage() {
           )}
           <button
             type="button"
-            disabled={loading || !usernameMessage.success}
+            disabled={
+              loading ||
+              !usernameMessage.success ||
+              !!nameError ||
+              !!emailError ||
+              !!passwordError ||
+              form.name === "" ||
+              form.email === "" ||
+              form.password === ""
+            }
             onClick={handleSignUp}
             className="w-full rounded-xl bg-indigo-500 hover:bg-indigo-400 text-white font-medium py-3 transition disabled:opacity-60"
           >

@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify, make_response
 from helpers.utilities import (
     validate_and_get_token_payload
 )
+from helpers.validators import validate_email, validate_full_name
 from db import users_collection
 from bson import ObjectId
 from models.User import User
@@ -23,7 +24,15 @@ def update_profile():
     email = data.get("email")
     if not name or not description or not profile_links or not email:
         return make_response({"success": False, "message": "Missing required fields"}, 400)
-    
+
+    is_valid, error = validate_full_name(name)
+    if not is_valid:
+        return make_response({"success": False, "message": error}, 400)
+
+    is_valid, error = validate_email(email)
+    if not is_valid:
+        return make_response({"success": False, "message": error}, 400)
+
     user_id = payload.get("user_id")
     user = User.get_by_id(user_id)
     if not user:
