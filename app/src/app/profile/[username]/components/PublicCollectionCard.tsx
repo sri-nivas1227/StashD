@@ -28,6 +28,7 @@ export default function PublicCollectionCard({ name, username, slug }: Props) {
       <span
         onClick={handleOpen}
         className="font-medium truncate cursor-pointer"
+        title="Click to view Collection"
       >
         {name}
       </span>
@@ -37,12 +38,16 @@ export default function PublicCollectionCard({ name, username, slug }: Props) {
           onClick={handleCopy}
           size={16}
           className="shrink-0 opacity-60 hover:opacity-100"
-        />
+        >
+          <title>Copy Collection URL</title>
+        </Copy>
         <SquareArrowOutUpRight
           onClick={handleOpen}
           size={14}
           className="shrink-0 opacity-60 hover:opacity-100"
-        />
+        >
+          <title>Click to view Collection</title>
+        </SquareArrowOutUpRight>
       </div>
     </div>
   );
