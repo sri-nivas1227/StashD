@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { ROUTES } from "@/config/constants";
 import Image from "next/image";
-import Logo from "@/app/assets/StashD-Logo.png";
+import Logo from "@/app/assets/StashD-Logo-White.png";
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
@@ -90,7 +90,7 @@ export default function HomePage() {
       <section className="mt-10">
         <Link href={ROUTES.HOME} className="flex items-center justify-center">
           {/* <LinkIcon className="w-6 h-6" /> */}
-          <Image src={Logo} alt="StashD Logo" className="w-48 invert" />
+          <Image src={Logo} alt="StashD Logo" className="w-48" />
         </Link>{" "}
       </section>
       {/* ── HERO ──────────────────────────────────────────────────────────── */}

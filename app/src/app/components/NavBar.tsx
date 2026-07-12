@@ -6,7 +6,7 @@ import { extractTokenAction, logoutAction } from "../actions";
 import { useRouter } from "next/navigation";
 import { ROUTES, UI_CONFIG, APP_CONFIG } from "@/config/constants";
 // get logo from public folder
-import Logo from "@/app/assets/StashD-Logo.png";
+import Logo from "@/app/assets/StashD-Logo-White.png";
 import Image from "next/image";
 
 export default function NavBar() {
@@ -28,7 +28,7 @@ export default function NavBar() {
       <div className="mx-auto flex md:w-2/3 w-md items-center justify-between px-4 py-3">
         <Link href={ROUTES.HOME} className="flex items-center justify-center">
           {/* <LinkIcon className="w-6 h-6" /> */}
-          <Image src={Logo} alt="StashD Logo" className="w-28 invert" />
+          <Image src={Logo} alt="StashD Logo" className="w-28" />
         </Link>
         <div className="flex items-center gap-2">
           <div className="relative">

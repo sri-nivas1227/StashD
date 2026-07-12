@@ -1,5 +1,5 @@
 import Image from "next/image";
-import Logo from "@/app/assets/StashD-Logo.png";
+import Logo from "@/app/assets/StashD-Logo-White.png";
 import GitHub from "@/app/assets/mark-github-24.svg";
 import LinkedIn from "@/app/assets/linkedin-svgrepo-com.svg";
 import GoFundMe from "@/app/assets/gofundme-svgrepo-com.svg";
@@ -11,7 +11,7 @@ export default function Footer() {
     <footer className="w-full px-4 sm:px-8 md:px-16 m-auto py-4 border-t border-zinc-800 text-center text-sm text-zinc-500">
       <main className="p-1 grid grid-cols-1 md:grid-cols-3 items-center justify-between gap-8 md:gap-4">
         <section className="flex flex-col items-center justify-center gap-2">
-          <Image alt="Logo" src={Logo} className="invert w-24 md:w-32" />
+          <Image alt="Logo" src={Logo} className="w-24 md:w-32" />
           <span className="text-xs sm:text-sm">
             Stash your Links. Stay Organized.
           </span>
