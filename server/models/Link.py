@@ -46,15 +46,15 @@ class Link:
             "category_id": self.category_id,
             "user_id": self.user_id,
             "visits": self.visits,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
-            "updated_at": self.updated_at.isoformat() if self.updated_at else None
+            "created_at": str(self.created_at),
+            "updated_at": str(self.updated_at)
         }
     
     def create(self):
         """Create a new link"""
         try:
             self.created_at = datetime.now()
-            self.updated_at = self.created_at
+            self.updated_at = None
             link_data = self.to_dict()
             # Remove _id for creation
             if "_id" in link_data:

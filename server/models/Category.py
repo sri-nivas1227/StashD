@@ -38,8 +38,8 @@ class Category:
             "category_slug": self.category_slug,
             "user_id": self.user_id,
             "is_public": self.is_public,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
-            "updated_at": self.updated_at.isoformat() if self.updated_at else None
+            "created_at": str(self.created_at) if self.created_at else None,
+            "updated_at": str(self.updated_at) if self.updated_at else None
         }
 
     def create(self):
