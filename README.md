@@ -1,148 +1,68 @@
-# LinkHub
+# StashD 🔖
 
-> A personal bookmarking app to save, organize, and access links seamlessly across devices.
+**Save it. Organize it. Share it.** StashD is a full-stack bookmarking app that turns saved links into something you can actually find, understand, and share — instead of letting them pile up in a browser bookmarks folder you never open again.
 
-## 🚀 Tech Stack
+🔗 **Live App:** [mystashd.link](https://mystashd.link)
 
-**Frontend**: Next.js
+---
 
-**Backend**: Flask
+## The Problem
 
-**Database**: MongoDB
+Most bookmarking tools stop at "save." There's no easy way to organize links, remember why you saved them, or share a curated list with someone else. Over time, saved links pile up and become impossible to find again — so they just sit there, unused.
 
-**Authentication**: JWT
+## What StashD Does
 
-## ✨ Features
+- **Smart link previews** — When you save a link, StashD automatically scrapes the page in the background and pulls out the title, description, and preview image, so every bookmark is recognizable at a glance instead of just a raw URL.
+- **AI-powered tagging** — Each saved link is automatically tagged using Claude (Haiku), so you don't have to manually organize everything yourself.
+- **Collections** — Group your links into collections, like folders, to keep things organized by topic or project.
+- **Secure sharing** — Mark any collection as shareable and get a unique link you can send to anyone. Revoke it anytime, and it stops working instantly — without touching the rest of your account.
+- **Secure accounts** — Sign-up and login is protected with JWT-based auth and email one-time-password (OTP) verification, instead of relying on a password alone.
 
-📂 Create categories to organize your bookmarks
+## How It's Built
 
-🔖 Save links with titles and tags for better context and easy retrieval
+StashD is a full-stack app I designed and built end-to-end — architecture, backend, frontend, AI integration, security, and deployment.
 
-🤝 Share collections with friends to collaborate or recommend resources
+**Frontend** — Built with Next.js, handling the full user interface, routing, and data fetching.
 
-## Project Outline
+**Backend** — Built with Flask (Python), exposing the API for auth, links, tags, and collections.
 
-### User Stories
+**Database** — MongoDB stores users, links, tags, and collections, with a schema I designed to keep data organized and fast to query.
 
-As a user, I can:
+**Authentication** — JWT tokens combined with email OTP verification (via the Resend API), so accounts stay secure without relying only on passwords.
 
--   **Sign up** for a new account with my email and password.
--   **Log in** to my account to access my saved links.
--   **View all my saved links** on a central dashboard.
--   **Search** for specific links by title or tags.
--   **Filter** my links by category.
--   **Add a new link** by providing a URL, title, and selecting a category.
--   **Create a new category** while adding a link if it doesn't exist.
--   **Edit** the title, and category of an existing link.
--   **Delete** a link that I no longer need.
--   **Copy a link's URL** to my clipboard with a single click.
--   **View my profile** information, including my name, email, and a short bio.
--   **Edit my profile** to update my personal details and social links.
+**Link Previews** — Cheerio and Mozilla's Readability library scrape saved pages to extract titles, descriptions, and preview images.
 
-### Technical Overview
+**AI Tagging** — Anthropic's Claude (Haiku model) reads the scraped content and automatically suggests relevant tags for each saved link.
 
-LinkHub is a full-stack web application built with a modern tech stack, designed for performance and scalability.
+**Secure Sharing** — A revocable share-token system generates a unique token for each public collection instead of exposing internal database IDs, so shared links can be turned off at any time without affecting anything else.
 
-**Frontend:**
+**Infrastructure** — Instead of paying a cloud provider, I built and configured my own home server to host StashD. The app is containerized with Docker (frontend, backend, and database packaged together for consistent, one-command deployment) and exposed securely to the internet through a Cloudflare Tunnel, with no ports opened directly on the server.
 
--   **Framework:** [Next.js](https://nextjs.org/) (React framework)
--   **Language:** [TypeScript](https://www.typescriptlang.org/)
--   **Styling:** [Tailwind CSS](https://tailwindcss.com/)
--   **UI Components:** Custom-built components with animations using [Framer Motion](https://www.framer.com/motion/).
--   **State Management:** React hooks (`useState`, `useEffect`) and server-side data fetching with Next.js Server Actions.
--   **User Experience:** The frontend is designed to be a responsive and intuitive single-page application (SPA). It provides instant feedback for user actions with optimistic UI updates and toast notifications for success or error messages.
+**Monitoring** — Uptime Kuma tracks uptime, and GlitchTip catches and alerts on errors in production, so issues get caught early — often before a user even notices.
 
-**Backend:**
+## Tech Stack
 
--   **Framework:** [Flask](https://flask.palletsprojects.com/) (Python micro-framework)
--   **Language:** [Python](https://www.python.org/)
--   **Database:** [MongoDB](https://www.mongodb.com/) (NoSQL database)
--   **API:** A RESTful API is exposed with clear and organized endpoints for authentication, links, categories, and user profiles.
--   **Authentication:** [JSON Web Tokens (JWT)](https://jwt.io/) are used for secure authentication and to protect the API endpoints.
--   **Data Models:** The backend uses clear data models for Users, Links, and Categories, which are stored in the MongoDB database.
+| Layer | Technology |
+|---|---|
+| Frontend | Next.js |
+| Backend | Flask (Python) |
+| Database | MongoDB |
+| Auth | JWT + Email OTP (Resend) |
+| AI | Anthropic Claude (Haiku) |
+| Web Scraping | Cheerio, Mozilla Readability |
+| Containerization | Docker |
+| Hosting | Self-hosted home server + Cloudflare Tunnel |
+| Monitoring | Uptime Kuma, GlitchTip |
 
-**Deployment:**
+## Outcome
 
--   **Containerization:** The entire application is containerized using [Docker](https://www.docker.com/) and can be easily deployed with a single `docker-compose up` command. This ensures a consistent and reproducible environment for both development and production.
+StashD is live in production at [mystashd.link](https://mystashd.link), handling real user sign-ups, saved links, and shared collections end-to-end. Building it also left me with a fully set-up, secure home server that can host any future app I build — no extra cost, no extra setup.
 
-### 🔮 Future Plans
+## Ownership
 
-- A Profile page
-- Shareable collections
-- A chrome extension to save links
-- An app to easily access the links and also might send reminders to view those recently saved links
+Every part of this project — design, backend, frontend, AI integration, security, and DevOps — was built solo, from first idea to a live product running for real users.
 
-## 🛠️ Getting Started
-**Prerequisites**
+---
 
-
-- Node.js & npm/yarn
-
-- Python 3.x
-
-- MongoDB
-
-### Installation
-
-**Clone the repository**:
-
-- `git clone https://github.com/sri-nivas1227/LinkHub.git`
-- `cd linkhub`
-
-
-**Setup and run backend (Flask)**:
-
-- `cd server`
-- `python -m venv venv`
-- `venv/Scripts/activate` or `source ./venv/bin/activate` (for linux or mac)
-- `pip install -r requirements.txt`
-- `python app.py`
-
-
-**Setup and run frontend (Next.js)**:
-
-- `cd app`
-- `npm install`
-- `npm run dev`
-
-
-Visit the app at http://localhost:3000
-### Environment Variables
-
-To run this project, you will need to add the following environment variables to your .env file in the `server` directory.
-
-`MONGO_USERNAME`: Your MongoDB username
-`MONGO_PASSWORD`: Your MongoDB password
-`MONGO_CLUSTER_URL`: Your MongoDB cluster URL
-`MONGO_DATABASE_NAME`: Your MongoDB database name
-`JWT_SECRET`: Your secret for JWT
-`ALLOWED_HOSTS`: The hosts that are allowed to make requests to the server
-`FLASK_ENV`: The environment for the flask app. It can be either `development` or `production`
-
-For production, you should use a `.env.production` file.
-## � Deployment
-
-This application can be easily deployed using Docker.
-
-- `docker-compose up --build`
-
-This will build the Docker images for the frontend and backend and run the containers.
-
-## �📌 Roadmap
-
- - Malicious URL scanning
-
- - ML-powered search and recommendations
-
- - Mobile-friendly UI
-
-- Browser extension for one-click saving
-
-### 🤝 Contributing
-
-Contributions, issues, and feature requests are welcome!
-Feel free to fork this repo and submit a pull request.
-
-### 📄 License
-
-This project is licensed under the MIT License.
+**Author:** Srinivas Mekala
+[GitHub](https://github.com/sri-nivas1227) · [LinkedIn](https://linkedin.com/in/sri-nivas1227) · [Portfolio](https://srinivas-mekala.netlify.app)
