@@ -37,3 +37,17 @@ def validate_username(username: str):
             "only letters, numbers, or underscores"
         )
     return True, None
+
+
+def validate_category_name(name: str):
+    if not isinstance(name, str) or not name.strip():
+        return False, "Category name is required"
+    if len(name.strip()) > 100:
+        return False, "Category name must be less than 100 characters"
+    return True, None
+
+
+def validate_is_public(is_public):
+    if not isinstance(is_public, bool):
+        return False, "isPublic must be a boolean"
+    return True, None

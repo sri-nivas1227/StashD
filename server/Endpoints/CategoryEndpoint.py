@@ -4,6 +4,7 @@ from models.Category import Category
 from models.User import User
 import datetime
 from helpers.utilities import validate_and_get_token_payload, convert_to_slug
+from helpers.validators import validate_category_name, validate_is_public
 
 # Create a Blueprint for Category endpoints
 categoryRouter = Blueprint('category', __name__)
@@ -50,7 +51,17 @@ def update_category(category_id):
             "success": False,
             "message": "a name or is_public is required"
         }), 400
-    
+
+    if new_name is not None:
+        is_valid, error = validate_category_name(new_name)
+        if not is_valid:
+            return jsonify({"success": False, "message": error}), 400
+
+    if is_public is not None:
+        is_valid, error = validate_is_public(is_public)
+        if not is_valid:
+            return jsonify({"success": False, "message": error}), 400
+
     category = Category.get_by_id(category_id=category_id, user_id=user_id)
     if new_name:
         new_slug = convert_to_slug(new_name)
