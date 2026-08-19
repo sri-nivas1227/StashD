@@ -50,7 +50,9 @@ export default function DataPanel({
 
   const categoryNameForLinks = useMemo(() => {
     if (showPublic) return null;
-    return searchQuery || selectedCategoryId === "all" ? selectedCategoryName : null;
+    return searchQuery || selectedCategoryId === "all"
+      ? selectedCategoryName
+      : null;
   }, [searchQuery, selectedCategoryId, selectedCategoryName, showPublic]);
 
   useEffect(() => {
@@ -79,7 +81,11 @@ export default function DataPanel({
       setIsLoadingLinks(true);
       try {
         if (showPublic && username && collectionSlug) {
-          const responseData = await getLinksFromPublicCollection(username, collectionSlug, searchQuery);
+          const responseData = await getLinksFromPublicCollection(
+            username,
+            collectionSlug,
+            searchQuery,
+          );
           const allLinks = Array.isArray(responseData?.data?.links)
             ? responseData.data.links
             : [];
@@ -196,7 +202,11 @@ export default function DataPanel({
         )}
         {showAddLinkButton && (
           <Link
-            href={ROUTES.ADD_LINK}
+            href={
+              selectedCategoryId != "all"
+                ? `${ROUTES.ADD_LINK}?categoryId=${selectedCategoryId}`
+                : ROUTES.ADD_LINK
+            }
             className="text-xs font-medium text-indigo-300 transition hover:text-indigo-200"
           >
             Add link

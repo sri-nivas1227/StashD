@@ -34,6 +34,7 @@ function AddLinkForm() {
   // on load fetch the link id from the url params and replace the url without the params
   const urlParams = useSearchParams();
   const linkId = urlParams.get("linkId");
+  const categoryId = urlParams.get("categoryId");
   useEffect(() => {
     if (linkId) {
       const fetchLinkData = async () => {
@@ -58,7 +59,14 @@ function AddLinkForm() {
       setIsEditingLink(true);
     }
   }, [linkId]);
-
+  useEffect(() => {
+    if (categoryId) {
+      setFormData((prevData) => ({
+        ...prevData,
+        category_id: categoryId,
+      }));
+    }
+  }, [categoryId]);
   const fetchCategories = async () => {
     try {
       const response = await getCategoriesAction();
