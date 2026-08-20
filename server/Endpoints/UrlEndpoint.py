@@ -6,7 +6,8 @@ from db import db
 from helpers.utilities import convert_to_slug
 from models.Category import Category
 from helpers.utilities import validate_and_get_token_payload
-
+import threading
+from jobs.tagging_job import tag_link
 
 # Create a Blueprint for URL endpoints
 urlRouter = Blueprint('url', __name__)
@@ -69,7 +70,7 @@ def create_url():
     
     # Save to database
     link_id = link.create()
-    
+    threading.Thread(target=tag_link, args=(link_id, link.url, user_id), daemon=True).start()
     return jsonify({
         "success": True,
         "message": "URL created successfully",
@@ -249,6 +250,8 @@ def update_url(url_id):
                     data['category_id'] = str(new_category_object._id)
             del data["new_category"]
             success = link.update(data)
+            threading.Thread(target=tag_link, args=(link._id, link.url, user_id), daemon=True).start()
+
         if success:
             return jsonify({
                 "success": True,
