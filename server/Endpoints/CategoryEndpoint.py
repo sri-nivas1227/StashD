@@ -1,8 +1,6 @@
 from flask import Blueprint, jsonify, request
-from bson import ObjectId
 from models.Category import Category
 from models.User import User
-import datetime
 from helpers.utilities import validate_and_get_token_payload, convert_to_slug
 from helpers.validators import validate_category_name, validate_is_public
 
