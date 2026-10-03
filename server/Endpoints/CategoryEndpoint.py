@@ -66,7 +66,8 @@ def update_category(category_id):
     if new_name:
         new_slug = convert_to_slug(new_name)
         if category.category_slug != new_slug:
-            category.category_slug= new_slug
+            category.category_slug = new_slug
+        if category.name != new_name:
             category.name = new_name
     if is_public is not None and category.is_public != is_public:
         category.is_public = is_public
