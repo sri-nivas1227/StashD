@@ -68,6 +68,12 @@ def update_category(category_id):
         }), 404
     if new_name:
         new_slug = convert_to_slug(new_name)
+        all_categories_with_slug = Category.get_by_slug(new_slug, user_id)
+        if any(str(c._id) != category_id for c in all_categories_with_slug):
+            return jsonify({
+                "success": False,
+                "message": "Category Name already exists."
+            }), 409
         if category.category_slug != new_slug:
             category.category_slug = new_slug
         if category.name != new_name:
