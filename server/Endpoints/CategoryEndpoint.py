@@ -61,6 +61,11 @@ def update_category(category_id):
             return jsonify({"success": False, "message": error}), 400
 
     category = Category.get_by_id(category_id=category_id, user_id=user_id)
+    if category is None:
+        return jsonify({
+            "success":False,
+            "message": "Category Not Found"
+        }), 404
     if new_name:
         new_slug = convert_to_slug(new_name)
         if category.category_slug != new_slug:
@@ -122,6 +127,11 @@ def generate_collection_public_url(category_id:str):
         }), 401
     
     category = Category.get_by_id(category_id=category_id, user_id=user_id)
+    if category is None:
+            return jsonify({
+                "success":False,
+                "message": "Category Not Found"
+            }), 404
     user = User.get_by_id(user_id=user_id)
     if user and category.is_public:
         return jsonify({
@@ -135,4 +145,4 @@ def generate_collection_public_url(category_id:str):
          return jsonify({
             "success": False,
             "message": "Failed to fetch Public URL"
-        }), 401
+        }), 403
