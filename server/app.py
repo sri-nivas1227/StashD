@@ -8,10 +8,20 @@ from Endpoints.ProfileEndpoints import profile_router
 from Endpoints.ShareEndpoints import share_router
 from Endpoints.AdminEndpoints import admin_router
 from flask_cors import CORS
-from db import db
+from db import db, ping_db
+import logging
 
 # Load environment variables
 load_dotenv()
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+logger = logging.getLogger(__name__)
+
+# Verify DB connectivity at startup (also runs under gunicorn, not just __main__)
+if ping_db():
+    logger.info("MongoDB connection successful (database: %s)", db.name)
+else:
+    logger.error("MongoDB connection FAILED - check MONGO_URI / credentials / network")
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -37,7 +47,7 @@ def home():
     return jsonify({
         "message": "Welcome to LinkHub API",
         "status": "running",
-        "database": "connected" if db is not None else "disconnected"
+        "database": "connected" if ping_db() else "disconnected"
     })
 
 
