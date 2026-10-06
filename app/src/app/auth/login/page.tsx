@@ -114,14 +114,22 @@ function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               className="mt-2 w-full rounded-xl bg-zinc-900/60 border border-white/10 px-4 py-3 text-sm text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/60"
             />
-            <p
-              onClick={() => {
-                setShowPassword((prev) => !prev);
-              }}
-              className="text-end m-1 text-xs cursor-pointer select-none text-indigo-300"
-            >
-              Show Password
-            </p>
+            <div className="flex items-center justify-between m-1">
+              <Link
+                href={ROUTES.FORGOT_PASSWORD}
+                className="text-xs text-indigo-300 hover:text-indigo-200"
+              >
+                Forgot password?
+              </Link>
+              <p
+                onClick={() => {
+                  setShowPassword((prev) => !prev);
+                }}
+                className="text-xs cursor-pointer select-none text-indigo-300"
+              >
+                Show Password
+              </p>
+            </div>
           </div>
           {error && (
             <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">

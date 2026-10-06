@@ -2,7 +2,7 @@
 from flask import current_app
 import resend
 from helpers.utilities import generate_numeric_otp
-from helpers.Email_Templates import get_login_email_template, get_registration_email_template
+from helpers.Email_Templates import get_login_email_template, get_registration_email_template, get_password_reset_email_template
 
 
 def send_email(fromEmail:str, toEmails:list[str], subject:str,bodyType:str, body:str, attachments=None):
@@ -54,4 +54,15 @@ def send_login_otp(toEmail: str):
             "otp": random_OTP,
             "email_data": email_data
         }
-    
+
+def send_password_reset_otp(toEmail: str):
+    random_OTP = generate_numeric_otp()
+
+    fromEmail = f"StashD <verify@{current_app.config.get('RESEND_EMAIL_DOMAIN')}>"
+    subject = f"{random_OTP} is your StashD password reset code"
+    body = get_password_reset_email_template(otp=random_OTP)
+    email_data = send_email(fromEmail=fromEmail, toEmails=[toEmail], subject=subject, bodyType="html", body=body)
+    return {
+            "otp": random_OTP,
+            "email_data": email_data
+        }
