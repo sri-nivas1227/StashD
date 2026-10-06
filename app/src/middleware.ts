@@ -12,6 +12,14 @@ function isPublic(pathname: string) {
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
+  if (pathname === ROUTES.ROOT) {
+    const response = await pingServerAction();
+    if (response.success) {
+      return NextResponse.redirect(new URL(ROUTES.HOME, req.url));
+    }
+    return NextResponse.next();
+  }
+
   if (isPublic(pathname)) return NextResponse.next();
 
   const response = await pingServerAction();
