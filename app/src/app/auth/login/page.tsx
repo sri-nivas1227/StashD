@@ -78,7 +78,13 @@ function LoginPage() {
           </p>
         </div>
 
-        <div className="space-y-4">
+        <form
+          className="space-y-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!loading) handleLogin();
+          }}
+        >
           <div>
             <label className="text-sm text-zinc-300">Email</label>
             <input
@@ -123,13 +129,13 @@ function LoginPage() {
             </div>
           )}
           <button
-            onClick={handleLogin}
+            type="submit"
             disabled={loading}
             className="w-full rounded-xl bg-indigo-500 hover:bg-indigo-400 text-white font-medium py-3 transition disabled:opacity-60"
           >
             {loading ? "Signing in..." : "Sign In"}
           </button>
-        </div>
+        </form>
 
         <div className="mt-6 text-sm text-zinc-400">
           Don&apos;t have an account?{" "}

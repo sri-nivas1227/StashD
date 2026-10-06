@@ -74,7 +74,14 @@ function VerifyEmail() {
             We emailed you the six digit code to verify your email address.
           </p>
         </div>
-        <div className="space-y-4">
+        <form
+          className="space-y-4"
+          noValidate
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!loading) handleVerifyOTP();
+          }}
+        >
           <div>
             {/* <label className="text-sm text-zinc-300">OTP</label> */}
             <input
@@ -95,14 +102,13 @@ function VerifyEmail() {
             </div>
           )}
           <button
-            type="button"
+            type="submit"
             disabled={loading}
-            onClick={handleVerifyOTP}
             className="w-full rounded-xl bg-indigo-500 hover:bg-indigo-400 text-white font-medium py-3 transition disabled:opacity-60"
           >
             {loading ? "Verifying OTP..." : "Verify OTP"}
           </button>
-        </div>
+        </form>
         <div className="mt-6 text-sm text-zinc-400">
           Didn't receive the OTP?{" "}
           <button

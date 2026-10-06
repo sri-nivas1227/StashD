@@ -126,12 +126,6 @@ export default function SignUpPage() {
     return emailRegex.test(email.trim());
   };
 
-  // handle enter key press for form submission
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      handleSignUp();
-    }
-  };
   useEffect(() => {
     const handler = setTimeout(async () => {
       if (form.username.trim() === "") {
@@ -189,7 +183,14 @@ export default function SignUpPage() {
           </p>
         </div>
 
-        <div className="space-y-4">
+        <form
+          className="space-y-4"
+          noValidate
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!loading) handleSignUp();
+          }}
+        >
           <div>
             <label className="text-sm text-zinc-300">Name</label>
             <input
@@ -271,7 +272,7 @@ export default function SignUpPage() {
             </div>
           )}
           <button
-            type="button"
+            type="submit"
             disabled={
               loading ||
               !usernameMessage.success ||
@@ -282,12 +283,11 @@ export default function SignUpPage() {
               form.email === "" ||
               form.password === ""
             }
-            onClick={handleSignUp}
             className="w-full rounded-xl bg-indigo-500 hover:bg-indigo-400 text-white font-medium py-3 transition disabled:opacity-60"
           >
             {loading ? "Signing Up..." : "Create Account"}
           </button>
-        </div>
+        </form>
 
         <div className="mt-6 text-sm text-zinc-400">
           Already have an account?{" "}
