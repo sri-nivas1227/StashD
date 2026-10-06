@@ -103,9 +103,9 @@ class Category:
     @staticmethod
     def get_by_slug(category_slug:str, user_id:str):
         try:
-            category = CategoriesCollection.find_one({"category_slug": category_slug, "user_id":user_id})
-            if category:
-                return Category(**category)
+            categories = CategoriesCollection.find({"category_slug": category_slug, "user_id":user_id})
+            if categories:
+                return [Category(**category) for category in categories]
             return None
         except PyMongoError as e:
-            raise Exception(f"Error fetching category by slug: {str(e)}")
+            raise Exception(f"Error fetching categories by slug: {str(e)}")

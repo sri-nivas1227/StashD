@@ -35,10 +35,10 @@ def create_url():
     if not data.get("category_id") and data.get("new_category"):
         # check if the new_category already exists
         new_category_slug = convert_to_slug(data.get("new_category"))
-        existing_category = Category.get_by_slug(new_category_slug, user_id)
-        if existing_category:
+        existing_categories_with_slug = Category.get_by_slug(new_category_slug, user_id)
+        if len(existing_categories_with_slug)>0:
             # Use existing category ID
-            data['category_id'] = str(existing_category._id)
+            data['category_id'] = str(existing_categories_with_slug[0]._id)
         else:
             # Create new category if not provided
             new_category = data.get("new_category")
@@ -239,10 +239,10 @@ def update_url(url_id):
             new_category = data.get("new_category")
             if new_category:
                 new_category_slug = convert_to_slug(new_category)
-                existing_category = Category.get_by_slug(new_category_slug, user_id)
-                if existing_category:
+                existing_categories_with_slug = Category.get_by_slug(new_category_slug, user_id)
+                if len(existing_categories_with_slug)>0:
                     # Use existing category ID
-                    data['category_id'] = str(existing_category._id)
+                    data['category_id'] = str(existing_categories_with_slug[0]._id)
                 else:
                     # Create new category if not provided
                     new_category_object = Category(name=new_category, category_slug=new_category_slug, user_id=user_id)

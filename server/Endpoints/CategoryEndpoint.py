@@ -1,8 +1,6 @@
 from flask import Blueprint, jsonify, request
-from bson import ObjectId
 from models.Category import Category
 from models.User import User
-import datetime
 from helpers.utilities import validate_and_get_token_payload, convert_to_slug
 from helpers.validators import validate_category_name, validate_is_public
 
@@ -63,10 +61,22 @@ def update_category(category_id):
             return jsonify({"success": False, "message": error}), 400
 
     category = Category.get_by_id(category_id=category_id, user_id=user_id)
+    if category is None:
+        return jsonify({
+            "success":False,
+            "message": "Category Not Found"
+        }), 404
     if new_name:
         new_slug = convert_to_slug(new_name)
+        all_categories_with_slug = Category.get_by_slug(new_slug, user_id)
+        if any(str(c._id) != category_id for c in all_categories_with_slug):
+            return jsonify({
+                "success": False,
+                "message": "Category Name already exists."
+            }), 409
         if category.category_slug != new_slug:
-            category.category_slug= new_slug
+            category.category_slug = new_slug
+        if category.name != new_name:
             category.name = new_name
     if is_public is not None and category.is_public != is_public:
         category.is_public = is_public
@@ -123,6 +133,11 @@ def generate_collection_public_url(category_id:str):
         }), 401
     
     category = Category.get_by_id(category_id=category_id, user_id=user_id)
+    if category is None:
+            return jsonify({
+                "success":False,
+                "message": "Category Not Found"
+            }), 404
     user = User.get_by_id(user_id=user_id)
     if user and category.is_public:
         return jsonify({
@@ -136,4 +151,4 @@ def generate_collection_public_url(category_id:str):
          return jsonify({
             "success": False,
             "message": "Failed to fetch Public URL"
-        }), 401
+        }), 403
