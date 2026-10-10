@@ -171,6 +171,74 @@ export async function postLoginAction(formData: any) {
   return responseData;
 }
 
+// Forgot password actions
+
+const RESET_COOKIE_NAME = "X-ResetVerifier";
+
+export async function postForgotPasswordAction(email: string) {
+  const response = await fetch(`${API_URL}${ENDPOINTS.FORGOT_PASSWORD}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ email }),
+  });
+  const responseData: responseFormat = await response.json();
+  const setCookieHeader = response.headers.get("set-cookie");
+  if (response.ok && setCookieHeader != null) {
+    const token = setCookieHeader.split(";")[0].split("=")[1];
+    const cookieStore = await cookies();
+    cookieStore.set(RESET_COOKIE_NAME, token, {
+      httpOnly: true,
+      maxAge: 900,
+      path: "/",
+      sameSite: "none",
+      secure: true,
+    });
+  }
+  return responseData;
+}
+
+export async function getPasswordResetEmailAction() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get(RESET_COOKIE_NAME)?.value;
+  if (!token) return null;
+  const payload = jwt.decode(token);
+  if (payload && typeof payload == "object") {
+    return (payload.email as string) ?? null;
+  }
+  return null;
+}
+
+export async function postResetPasswordAction(formData: {
+  otp: string;
+  newPassword: string;
+  newPasswordConfirm: string;
+}) {
+  const cookieStore = await cookies();
+  const token = cookieStore.get(RESET_COOKIE_NAME)?.value;
+  if (!token) {
+    return {
+      success: false,
+      message: "Session expired. Please request a new OTP.",
+      data: { redirect: "/auth/forgotPassword" },
+    } as responseFormat;
+  }
+  const response = await fetch(`${API_URL}${ENDPOINTS.RESET_PASSWORD}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Cookie: `${RESET_COOKIE_NAME}=${token}`,
+    },
+    body: JSON.stringify(formData),
+  });
+  const responseData: responseFormat = await response.json();
+  if (response.ok || response.status === 401) {
+    cookieStore.delete(RESET_COOKIE_NAME);
+  }
+  return responseData;
+}
+
 export async function pingServerAction() {
   const cookieStore = await cookies();
 
@@ -408,22 +476,32 @@ export async function getCollectionPublicURLAction(formData: { categoryId: strin
   return data;
 }
 
-export async function postChangePasswordAction(formData: {
-  currentPassword: string;
-  newPassword: string;
-  newPasswordConfirm: string;
-}) {
+// Sends an OTP to the logged-in user's email; finish with postResetPasswordAction
+export async function postChangePasswordSendOTPAction() {
   const token = await getToken();
-  const response = await fetch(`${API_URL}${ENDPOINTS.UPDATE_PASSWORD}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      Cookie: `token=${token?.value}`,
+  const response = await fetch(
+    `${API_URL}${ENDPOINTS.CHANGE_PASSWORD_SEND_OTP}`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Cookie: `token=${token?.value}`,
+      },
     },
-    body: JSON.stringify(formData),
-  });
+  );
   const data: responseFormat = await response.json();
-
+  const setCookieHeader = response.headers.get("set-cookie");
+  if (response.ok && setCookieHeader != null) {
+    const resetToken = setCookieHeader.split(";")[0].split("=")[1];
+    const cookieStore = await cookies();
+    cookieStore.set(RESET_COOKIE_NAME, resetToken, {
+      httpOnly: true,
+      maxAge: 900,
+      path: "/",
+      sameSite: "none",
+      secure: true,
+    });
+  }
   return data;
 }
 

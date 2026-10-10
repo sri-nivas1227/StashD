@@ -3,7 +3,8 @@ from bcrypt import hashpw, gensalt, checkpw
 import jwt
 from dotenv import load_dotenv
 import os
-from datetime import datetime
+from bson import ObjectId
+from datetime import datetime, timedelta
 from helpers.utilities import validate_and_get_token_payload
 from helpers.validators import (
     validate_email,
@@ -13,7 +14,7 @@ from helpers.validators import (
 )
 from models.User import User
 from models.OTP import OTP
-from helpers.resend_emailer import send_onboarding_otp, send_login_otp
+from helpers.resend_emailer import send_onboarding_otp, send_login_otp, send_password_reset_otp
 load_dotenv()
 auth_router = Blueprint("auth", __name__)
 
@@ -243,48 +244,111 @@ def login():
         {"success": False, "message": "Invalid email or password"}, 401
     )
 
-@auth_router.route("/auth/update_password", methods=["PUT"])
-def update_password():
+PASSWORD_RESET_PURPOSE = "password_reset"
+PASSWORD_RESET_COOKIE = "X-ResetVerifier"
+RESET_SESSION_EXPIRED = {
+    "success": False,
+    "message": "Session expired. Please request a new OTP.",
+    "data": {"redirect": "/auth/forgotPassword"},
+}
+
+
+def _issue_password_reset_otp(email, user=None):
+    """Email a reset OTP (if user exists) and return a response carrying the reset cookie."""
+    if user:
+        otp_data = send_password_reset_otp(email)
+        if "error" in (otp_data.get("email_data") or {}):
+            return make_response({"success": False, "message": "Could not send the OTP. Please try again."}, 500)
+        otp = OTP.build_otp_object(otp=otp_data.get("otp"), user_id=str(user._id), purpose=PASSWORD_RESET_PURPOSE)
+        otp_id = otp.create()
+        user_id = str(user._id)
+    else:
+        # Same response for unknown emails so accounts cannot be enumerated
+        user_id, otp_id = str(ObjectId()), str(ObjectId())
+
+    jwt_token = jwt.encode(
+        {
+            "user_id": user_id,
+            "otp_id": otp_id,
+            "email": email,
+            "purpose": PASSWORD_RESET_PURPOSE,
+            "exp": datetime.utcnow() + timedelta(minutes=15),
+        },
+        current_app.config.get("JWT_SECRET"),
+        algorithm="HS256",
+    )
+    response = make_response(
+        {"success": True, "message": "If an account exists for this email, an OTP has been sent."}, 200
+    )
+    response.set_cookie(PASSWORD_RESET_COOKIE, jwt_token, max_age=900, httponly=True, samesite="None", secure=True)
+    return response
+
+
+@auth_router.route("/auth/forgot_password", methods=["POST"])
+def forgot_password():
+    data = request.get_json(silent=True) or {}
+    email = data.get("email")
+    is_valid, error = validate_email(email)
+    if not is_valid:
+        return make_response({"success": False, "message": error}, 400)
+    email = email.strip()
+    return _issue_password_reset_otp(email, User.get_by_email(email))
+
+
+@auth_router.route("/auth/change_password/send_otp", methods=["POST"])
+def change_password_send_otp():
+    """Logged-in users change their password via an OTP sent to their own email."""
     token = request.cookies.get("token")
-    is_valid_token, payload = validate_and_get_token_payload(token) if token else False
+    is_valid_token, payload = validate_and_get_token_payload(token) if token else (False, None)
     if not is_valid_token:
         return make_response({"success": False, "message": "Invalid or missing token"}, 401)
-
-    user_id = payload.get("user_id")
-    user = User.get_by_id(user_id)
+    user = User.get_by_id(payload.get("user_id"))
     if not user:
-        return make_response({"success":False, "message":"User does not exist"}, 401)
+        return make_response({"success": False, "message": "User does not exist"}, 401)
+    return _issue_password_reset_otp(user.email, user)
 
-    data = request.get_json()
-    currentPassword = data.get("currentPassword")
-    newPassword = data.get("newPassword")
-    newPasswordConfirm = data.get("newPasswordConfirm")
 
-    if not currentPassword or not newPassword or not newPasswordConfirm:
+@auth_router.route("/auth/reset_password", methods=["POST"])
+def reset_password():
+    token = request.cookies.get(PASSWORD_RESET_COOKIE)
+    if not token:
+        return make_response(RESET_SESSION_EXPIRED, 401)
+    try:
+        payload = jwt.decode(token, current_app.config.get("JWT_SECRET"), algorithms=["HS256"])
+    except jwt.InvalidTokenError:
+        return make_response(RESET_SESSION_EXPIRED, 401)
+    if payload.get("purpose") != PASSWORD_RESET_PURPOSE:
+        return make_response(RESET_SESSION_EXPIRED, 401)
+
+    data = request.get_json(silent=True) or {}
+    otp = data.get("otp")
+    new_password = data.get("newPassword")
+    new_password_confirm = data.get("newPasswordConfirm")
+    if not otp or not new_password or not new_password_confirm:
         return make_response({"success": False, "message": "All fields are required"}, 400)
-
-    if newPassword != newPasswordConfirm:
+    if new_password != new_password_confirm:
         return make_response({"success": False, "message": "New password and confirmation do not match"}, 400)
-
-    is_valid, error = validate_password(newPassword)
+    is_valid, error = validate_password(new_password)
     if not is_valid:
         return make_response({"success": False, "message": error}, 400)
 
-    if checkpw(
-        currentPassword.encode("utf-8"), user.password.encode("utf-8")
-    ):
-        is_user_updated = user.update({  "password": hashpw(newPassword.encode("utf-8"), gensalt()).decode("utf-8")})
-        if is_user_updated:
-            return make_response({
-                "success": True,
-                "message": "Password has been successfully updated. Please login with your new password!"
-            }, 200)
-    return make_response({
-        "success": False,
-        "message": "Something went wrong! Please try again."
-    })
-        
-    
+    user_id = payload.get("user_id")
+    if not OTP.verify_otp_for_purpose(otp, payload.get("otp_id"), user_id, PASSWORD_RESET_PURPOSE):
+        return make_response({"success": False, "message": "Invalid or expired OTP. Try again!"}, 400)
+
+    user = User.get_by_id(user_id)
+    if not user:
+        return make_response({"success": False, "message": "Invalid or expired OTP. Try again!"}, 400)
+    updated = user.update({"password": hashpw(new_password.encode("utf-8"), gensalt()).decode("utf-8")})
+    if not updated:
+        return make_response({"success": False, "message": "Something went wrong! Please try again."}, 500)
+
+    response = make_response(
+        {"success": True, "message": "Password reset successfully. Please login with your new password.",
+         "data": {"redirect": "/auth/login"}}, 200
+    )
+    response.delete_cookie(PASSWORD_RESET_COOKIE, samesite="None", secure=True)
+    return response
 
 
 @auth_router.route("/ping", methods=["GET"])
