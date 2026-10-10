@@ -476,22 +476,32 @@ export async function getCollectionPublicURLAction(formData: { categoryId: strin
   return data;
 }
 
-export async function postChangePasswordAction(formData: {
-  currentPassword: string;
-  newPassword: string;
-  newPasswordConfirm: string;
-}) {
+// Sends an OTP to the logged-in user's email; finish with postResetPasswordAction
+export async function postChangePasswordSendOTPAction() {
   const token = await getToken();
-  const response = await fetch(`${API_URL}${ENDPOINTS.UPDATE_PASSWORD}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      Cookie: `token=${token?.value}`,
+  const response = await fetch(
+    `${API_URL}${ENDPOINTS.CHANGE_PASSWORD_SEND_OTP}`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Cookie: `token=${token?.value}`,
+      },
     },
-    body: JSON.stringify(formData),
-  });
+  );
   const data: responseFormat = await response.json();
-
+  const setCookieHeader = response.headers.get("set-cookie");
+  if (response.ok && setCookieHeader != null) {
+    const resetToken = setCookieHeader.split(";")[0].split("=")[1];
+    const cookieStore = await cookies();
+    cookieStore.set(RESET_COOKIE_NAME, resetToken, {
+      httpOnly: true,
+      maxAge: 900,
+      path: "/",
+      sameSite: "none",
+      secure: true,
+    });
+  }
   return data;
 }
 

@@ -72,7 +72,7 @@ export const ENDPOINTS = {
   GET_PROFILE: "/profile",
   POST_PROFILE: "/profile",
   PUBLIC_PROFILE: "/profile",
-  UPDATE_PASSWORD: "/auth/update_password",
+  CHANGE_PASSWORD_SEND_OTP: "/auth/change_password/send_otp",
   REPORT_ISSUE: "/admin/report_issue",
 } as const;
 

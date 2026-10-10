@@ -244,50 +244,6 @@ def login():
         {"success": False, "message": "Invalid email or password"}, 401
     )
 
-@auth_router.route("/auth/update_password", methods=["PUT"])
-def update_password():
-    token = request.cookies.get("token")
-    is_valid_token, payload = validate_and_get_token_payload(token) if token else False
-    if not is_valid_token:
-        return make_response({"success": False, "message": "Invalid or missing token"}, 401)
-
-    user_id = payload.get("user_id")
-    user = User.get_by_id(user_id)
-    if not user:
-        return make_response({"success":False, "message":"User does not exist"}, 401)
-
-    data = request.get_json()
-    currentPassword = data.get("currentPassword")
-    newPassword = data.get("newPassword")
-    newPasswordConfirm = data.get("newPasswordConfirm")
-
-    if not currentPassword or not newPassword or not newPasswordConfirm:
-        return make_response({"success": False, "message": "All fields are required"}, 400)
-
-    if newPassword != newPasswordConfirm:
-        return make_response({"success": False, "message": "New password and confirmation do not match"}, 400)
-
-    is_valid, error = validate_password(newPassword)
-    if not is_valid:
-        return make_response({"success": False, "message": error}, 400)
-
-    if checkpw(
-        currentPassword.encode("utf-8"), user.password.encode("utf-8")
-    ):
-        is_user_updated = user.update({  "password": hashpw(newPassword.encode("utf-8"), gensalt()).decode("utf-8")})
-        if is_user_updated:
-            return make_response({
-                "success": True,
-                "message": "Password has been successfully updated. Please login with your new password!"
-            }, 200)
-    return make_response({
-        "success": False,
-        "message": "Something went wrong! Please try again."
-    })
-        
-    
-
-
 PASSWORD_RESET_PURPOSE = "password_reset"
 PASSWORD_RESET_COOKIE = "X-ResetVerifier"
 RESET_SESSION_EXPIRED = {
@@ -297,16 +253,8 @@ RESET_SESSION_EXPIRED = {
 }
 
 
-@auth_router.route("/auth/forgot_password", methods=["POST"])
-def forgot_password():
-    data = request.get_json(silent=True) or {}
-    email = data.get("email")
-    is_valid, error = validate_email(email)
-    if not is_valid:
-        return make_response({"success": False, "message": error}, 400)
-    email = email.strip()
-
-    user = User.get_by_email(email)
+def _issue_password_reset_otp(email, user=None):
+    """Email a reset OTP (if user exists) and return a response carrying the reset cookie."""
     if user:
         otp_data = send_password_reset_otp(email)
         if "error" in (otp_data.get("email_data") or {}):
@@ -334,6 +282,30 @@ def forgot_password():
     )
     response.set_cookie(PASSWORD_RESET_COOKIE, jwt_token, max_age=900, httponly=True, samesite="None", secure=True)
     return response
+
+
+@auth_router.route("/auth/forgot_password", methods=["POST"])
+def forgot_password():
+    data = request.get_json(silent=True) or {}
+    email = data.get("email")
+    is_valid, error = validate_email(email)
+    if not is_valid:
+        return make_response({"success": False, "message": error}, 400)
+    email = email.strip()
+    return _issue_password_reset_otp(email, User.get_by_email(email))
+
+
+@auth_router.route("/auth/change_password/send_otp", methods=["POST"])
+def change_password_send_otp():
+    """Logged-in users change their password via an OTP sent to their own email."""
+    token = request.cookies.get("token")
+    is_valid_token, payload = validate_and_get_token_payload(token) if token else (False, None)
+    if not is_valid_token:
+        return make_response({"success": False, "message": "Invalid or missing token"}, 401)
+    user = User.get_by_id(payload.get("user_id"))
+    if not user:
+        return make_response({"success": False, "message": "User does not exist"}, 401)
+    return _issue_password_reset_otp(user.email, user)
 
 
 @auth_router.route("/auth/reset_password", methods=["POST"])
