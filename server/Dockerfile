@@ -7,4 +7,4 @@ RUN pip install --no-cache-dir gunicorn -r requirements.txt
 
 COPY . .
 
-CMD [ "gunicorn", "--bind", "0.0.0.0:5000", "app:app" ]
+CMD [ "gunicorn","--no-control-socket", "--bind", "0.0.0.0:5000", "app:app" ]
