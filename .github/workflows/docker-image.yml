@@ -1,0 +1,28 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "staging" ]
+
+env:
+  SHORT_COMMIT_ID: $(git rev-parse --short HEAD)
+
+jobs:
+
+  stashd_app_build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build the Docker image of StashD App
+      run: docker build ./app --file Dockerfile --tag ghcr.io/sri-nivas1227/stashd-app:${{env.SHORT_COMMIT_ID}}
+    - name: Push the built image to GitHub Container Registry
+      run: docker push ghcr.io/sri-nivas1227/stashd-app:${{env.SHORT_COMMIT_ID}}
+  stashd_server_build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build the Docker Image of StashD Flask Server
+      run: docker build ./server --file Dockerfile --tag ghcr.io/sri-nivas1227/stashd-server:${{env.SHORT_COMMIT_ID}}
+    - name: Push the built image to GitHub Container Registry
+      run: docker push ghcr.io/sri-nivas1227/stashd-app:${{env.SHORT_COMMIT_ID}}
+      
