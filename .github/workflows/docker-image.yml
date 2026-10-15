@@ -3,7 +3,10 @@ name: Docker Image CI
 on:
   push:
     branches: [ "staging" ]
-
+permissions:
+  contents: read
+  packages: write
+  
 env:
   SHORT_COMMIT_ID: $(git rev-parse --short HEAD)
 
@@ -13,6 +16,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+    - name: Log into GHCR
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{github.actor}}
+        password: ${{secrets.GITHUB_TOKEN}}
     - name: Build the Docker image of StashD App
       run: docker build ./app --file ./app/Dockerfile --tag ghcr.io/sri-nivas1227/stashd-app:${{env.SHORT_COMMIT_ID}}
     - name: Push the built image to GitHub Container Registry
@@ -21,6 +30,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+    - name: Log into GHCR
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{github.actor}}
+        password: ${{secrets.GITHUB_TOKEN}}
     - name: Build the Docker Image of StashD Flask Server
       run: docker build ./server --file ./server/Dockerfile --tag ghcr.io/sri-nivas1227/stashd-server:${{env.SHORT_COMMIT_ID}}
     - name: Push the built image to GitHub Container Registry
