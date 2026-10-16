@@ -17,11 +17,10 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Log into GHCR
-      uses: docker/login-action@v3
-      with:
-        registry: ghcr.io
-        username: ${{github.actor}}
-        password: ${{secrets.GITHUB_TOKEN}}
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GH_USER: ${{ github.actor }}
+      run: echo "$GH_TOKEN" | docker login ghcr.io -u "$GH_USER" --password-stdin
     - name: Build the Docker image of StashD App
       run: docker build ./app --file ./app/Dockerfile --build-arg NEXT_PUBLIC_API_URL=http://server:5000 --tag ghcr.io/sri-nivas1227/stashd-app:${{env.IMAGE_TAG}}
     - name: Push the built image to GitHub Container Registry
@@ -31,11 +30,10 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Log into GHCR
-      uses: docker/login-action@v3
-      with:
-        registry: ghcr.io
-        username: ${{github.actor}}
-        password: ${{secrets.GITHUB_TOKEN}}
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GH_USER: ${{ github.actor }}
+      run: echo "$GH_TOKEN" | docker login ghcr.io -u "$GH_USER" --password-stdin
     - name: Build the Docker Image of StashD Flask Server
       run: docker build ./server --file ./server/Dockerfile --tag ghcr.io/sri-nivas1227/stashd-server:${{env.IMAGE_TAG}}
     - name: Push the built image to GitHub Container Registry
